@@ -1,55 +1,43 @@
 "use strict"
-import {createStore} from 'redux';
+//REACT
+import React from 'react';
+import {render} from 'react-dom';
+import {Provider} from 'react-redux';
 
-//import reducers from './reducers/index';
+//REDUX
+import {applyMiddleware, createStore} from 'redux';
+import logger from 'redux-logger';
 
-const reducer = function (state={books:[]}, action) {
-	switch(action.type) {
-		case "POST_BOOK":
-		// let books = state.concat(action.payload);
-		return {books:[...state.books, ...action.payload]};
-		break;
-		case "DELETE_BOOK":
-		// copy of the current array of books
-		const currentBookToDelete = [...state.books];
+import reducers from './reducers/index';
+import {addToCart} from './actions/cartActions';
+import {postBooks, deleteBooks, updateBooks} from './actions/booksActions';
 
-		const indexToDelete = currentBookToDelete.findIndex(
-			function(book){
-				return book.id === action.payload.id;
-			}
-		)
+const middleware = applyMiddleware(logger)
+const store = createStore(reducers, middleware);
 
-		// slice to remove the book at the specified index
-		return {books: [...currentBookToDelete.slice(0, indexToDelete), ...currentBookToDelete.slice(indexToDelete + 1)]}
-		break;
-	}
-	return state
-}
 
-const store = createStore(reducer);
+import BooksList from './componenets/pages/booksList'
 
-store.subscribe(function(){
-	console.log('current state is: ', store.getState());
-})
+render(
+	<Provider store={store}> 
+		<BooksList />
+	</Provider>, document.getElementById('app')
+);
 
-store.dispatch({
-	type: "POST_BOOK",
-	payload: [{
-		id:1,
-		title:'Book',
-		description: 'First book',
-		price: 33.3		
-	},
-	{
-		id:2,
-		title:'Book number 2',
-		description: 'Second book',
-		price: 45.3	
-	}]
-})
+//=====================
+// store.dispatch(postBooks(
+	
+// ))
 
-store.dispatch({
-	type: "DELETE_BOOK",
-	payload: {id:1}
-})
+// store.dispatch(deleteBooks({id: 1}))
 
+// store.dispatch(updateBooks(
+// 	{
+// 		id: 2,
+// 		title: 'This is Updated book'
+// 	}	
+// ))
+
+
+// //=======================
+// store.dispatch(addToCart([{id:1}]))

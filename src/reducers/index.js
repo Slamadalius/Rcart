@@ -1,8 +1,10 @@
 "use strict"
-import {combineRedusers} from 'redux';
+import {combineReducers} from 'redux';
 
 import {booksReducers} from './booksReducers';
+import {cartReducers} from './cartReducers';
 
-export default combineRedusers({
-	books: booksReducers
+export default combineReducers({
+	books: booksReducers,
+	cart: cartReducers
 })
