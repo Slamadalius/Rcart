@@ -16,11 +16,17 @@ const middleware = applyMiddleware(logger)
 const store = createStore(reducers, middleware);
 
 
-import BooksList from './componenets/pages/booksList'
+import BooksList from './componenets/pages/booksList';
+import Menu from './componenets/menu'
+import Footer from './componenets/footer'
 
 render(
-	<Provider store={store}> 
-		<BooksList />
+	<Provider store={store}>
+		<div>
+			<Menu /> 
+			<BooksList />
+			<Footer />	
+		</div>
 	</Provider>, document.getElementById('app')
 );
 

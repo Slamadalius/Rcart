@@ -18870,6 +18870,14 @@ var _booksList = __webpack_require__(217);
 
 var _booksList2 = _interopRequireDefault(_booksList);
 
+var _menu = __webpack_require__(486);
+
+var _menu2 = _interopRequireDefault(_menu);
+
+var _footer = __webpack_require__(487);
+
+var _footer2 = _interopRequireDefault(_footer);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var middleware = (0, _redux.applyMiddleware)(_reduxLogger2.default);
@@ -18881,7 +18889,13 @@ var store = (0, _redux.createStore)(_index2.default, middleware);
 (0, _reactDom.render)(_react2.default.createElement(
 	_reactRedux.Provider,
 	{ store: store },
-	_react2.default.createElement(_booksList2.default, null)
+	_react2.default.createElement(
+		'div',
+		null,
+		_react2.default.createElement(_menu2.default, null),
+		_react2.default.createElement(_booksList2.default, null),
+		_react2.default.createElement(_footer2.default, null)
+	)
 ), document.getElementById('app'));
 
 //=====================
@@ -18957,8 +18971,24 @@ var BookForm = function (_React$Component) {
 			this.props.postBooks(book);
 		}
 	}, {
+		key: 'onDelete',
+		value: function onDelete() {
+			var bookId = (0, _reactDom.findDOMNode)(this.refs.delete).value;
+
+			this.props.deleteBooks(bookId);
+		}
+	}, {
 		key: 'render',
 		value: function render() {
+			var booksList = this.props.books.map(function (booksArr) {
+				return _react2.default.createElement(
+					'option',
+					{ key: booksArr._id },
+					' ',
+					booksArr._id
+				);
+			});
+
 			return _react2.default.createElement(
 				_reactBootstrap.Well,
 				null,
@@ -19009,6 +19039,34 @@ var BookForm = function (_React$Component) {
 						{ onClick: this.handelSubmit.bind(this), bsStyle: 'primary' },
 						'Add Book'
 					)
+				),
+				_react2.default.createElement(
+					_reactBootstrap.Panel,
+					{ style: { marginTop: '25px' } },
+					_react2.default.createElement(
+						_reactBootstrap.FormGroup,
+						{ controlId: 'formControlsSelect' },
+						_react2.default.createElement(
+							_reactBootstrap.ControlLabel,
+							null,
+							'Select a book to delete'
+						),
+						_react2.default.createElement(
+							_reactBootstrap.FormControl,
+							{ ref: 'delete', componentClass: 'select', placeholder: 'select' },
+							_react2.default.createElement(
+								'option',
+								{ value: 'select' },
+								'select'
+							),
+							booksList
+						)
+					),
+					_react2.default.createElement(
+						_reactBootstrap.Button,
+						{ onClick: this.onDelete.bind(this), bsStyle: 'danger' },
+						'Delete Book'
+					)
 				)
 			);
 		}
@@ -19017,10 +19075,19 @@ var BookForm = function (_React$Component) {
 	return BookForm;
 }(_react2.default.Component);
 
-function mapDispatchToProps(dispatch) {
-	return (0, _redux.bindActionCreators)({ postBooks: _booksActions.postBooks }, dispatch);
+function mapStateToProps(state) {
+	return {
+		books: state.books.books
+	};
 }
-exports.default = (0, _reactRedux.connect)(null, mapDispatchToProps)(BookForm);
+
+function mapDispatchToProps(dispatch) {
+	return (0, _redux.bindActionCreators)({
+		postBooks: _booksActions.postBooks,
+		deleteBooks: _booksActions.deleteBooks
+	}, dispatch);
+}
+exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(BookForm);
 
 /***/ }),
 /* 222 */
@@ -19070,7 +19137,7 @@ var BookItem = function (_React$Component) {
 		key: 'handleCart',
 		value: function handleCart() {
 			var book = [].concat(_toConsumableArray(this.props.cart), [{
-				id: this.props._id,
+				_id: this.props._id,
 				title: this.props.title,
 				description: this.props.description,
 				price: this.props.price,
@@ -19326,7 +19393,8 @@ var Cart = function (_React$Component) {
 						_react2.default.createElement(
 							'h6',
 							null,
-							'Total Amount: '
+							'Total Amount: ',
+							this.props.totalAmount
 						),
 						_react2.default.createElement(
 							_reactBootstrap.Button,
@@ -19380,7 +19448,9 @@ var Cart = function (_React$Component) {
 
 function mapStateToProps(state) {
 	return {
-		cart: state.cart.cart
+		cart: state.cart.cart,
+		totalAmount: state.cart.totalAmount,
+		totalQty: state.cart.totalQty
 	};
 }
 function mapDispatchToProps(dispatch) {
@@ -19411,12 +19481,12 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 function booksReducers() {
 	var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
 		books: [{
-			id: 1,
+			_id: 1,
 			title: 'Book',
 			description: 'First book',
 			price: 32.3
 		}, {
-			id: 2,
+			_id: 2,
 			title: 'Book number 2',
 			description: 'Second book',
 			price: 25.3
@@ -19440,7 +19510,7 @@ function booksReducers() {
 			var currentBookToDelete = [].concat(_toConsumableArray(state.books));
 
 			var indexToDelete = currentBookToDelete.findIndex(function (book) {
-				return book._id === action.payload._id;
+				return book._id.toString() === action.payload;
 			});
 			// slice to remove the book at the specified index
 			return { books: [].concat(_toConsumableArray(currentBookToDelete.slice(0, indexToDelete)), _toConsumableArray(currentBookToDelete.slice(indexToDelete + 1))) };
@@ -19471,57 +19541,73 @@ function booksReducers() {
 
 
 Object.defineProperty(exports, "__esModule", {
-		value: true
+	value: true
 });
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 exports.cartReducers = cartReducers;
+exports.totals = totals;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function cartReducers() {
-		var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { cart: [] };
-		var action = arguments[1];
+	var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { cart: [] };
+	var action = arguments[1];
 
-		switch (action.type) {
-				case "ADD_TO_CART":
-						return _extends({}, state, { cart: action.payload });
-						break;
+	switch (action.type) {
+		case "ADD_TO_CART":
+			return _extends({}, state, {
+				cart: action.payload,
+				totalAmount: totals(action.payload).amount,
+				totalQty: totals(action.payload).qty
+			});
+			break;
 
-				case "DELETE_CART_ITEM":
-						return _extends({}, state, { cart: action.payload });
-						break;
+		case "DELETE_CART_ITEM":
+			return _extends({}, state, {
+				cart: action.payload,
+				totalAmount: totals(action.payload).amount,
+				totalQty: totals(action.payload).qty
+			});
+			break;
 
-				case "UPDATE_CART":
-						var currentCartToUpdate = [].concat(_toConsumableArray(state.cart));
+		case "UPDATE_CART":
+			var currentCartToUpdate = [].concat(_toConsumableArray(state.cart));
 
-						var indexToUpdate = currentCartToUpdate.findIndex(function (book) {
-								return book._id === action._id;
-						});
+			var indexToUpdate = currentCartToUpdate.findIndex(function (book) {
+				return book._id === action._id;
+			});
 
-						var newCartToUpdate = _extends({}, currentCartToUpdate[indexToUpdate], {
-								quantity: currentCartToUpdate[indexToUpdate].quantity + action.unit
-						});
-						var cartUpdate = [].concat(_toConsumableArray(currentCartToUpdate.slice(0, indexToUpdate)), [newCartToUpdate], _toConsumableArray(currentCartToUpdate.slice(indexToUpdate + 1)));
+			var newCartToUpdate = _extends({}, currentCartToUpdate[indexToUpdate], {
+				quantity: currentCartToUpdate[indexToUpdate].quantity + action.unit
+			});
+			var cartUpdate = [].concat(_toConsumableArray(currentCartToUpdate.slice(0, indexToUpdate)), [newCartToUpdate], _toConsumableArray(currentCartToUpdate.slice(indexToUpdate + 1)));
 
-						return _extends({}, state, { cart: cartUpdate });
-						break;
+			return _extends({}, state, {
+				cart: cartUpdate,
+				totalAmount: totals(cartUpdate).amount,
+				totalQty: totals(cartUpdate).qty
+			});
+			break;
+	}
+	return state;
+}
 
-				// case "UPDATE_CART":
-				// 	const currentBookToUpdate = [...state.cart]
-				// 	const indexToUpdate = currentBookToUpdate.findIndex(function(book){
-				// 		return book._id === action._id;
-				// 	})
-				// 	const newBookToUpdate = {
-				// 		...currentBookToUpdate[indexToUpdate],
-				// 		quantity: currentBookToUpdate[indexToUpdate].quantity + action.unit
-				// 	}
-				// let cartUpdate = [...currentBookToUpdate.slice(0, indexToUpdate), newBookToUpdate,...currentBookToUpdate.slice(indexToUpdate +1)]
-				// return {...state, cart:cartUpdate}
-				// break;
-		}
-		return state;
+function totals(payloadArr) {
+	var totalAmount = payloadArr.map(function (cartArr) {
+		return cartArr.price * cartArr.quantity;
+	}).reduce(function (a, b) {
+		return a + b;
+	}, 0); //starts summing from index 0
+
+	var totalQty = payloadArr.map(function (qty) {
+		return qty.quantity;
+	}).reduce(function (a, b) {
+		return a + b;
+	}, 0);
+
+	return { amount: totalAmount.toFixed(2), qty: totalQty };
 }
 
 /***/ }),
@@ -43522,6 +43608,166 @@ module.exports = function(module) {
 	return module;
 };
 
+
+/***/ }),
+/* 486 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactBootstrap = __webpack_require__(72);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Menu = function (_React$Component) {
+	_inherits(Menu, _React$Component);
+
+	function Menu() {
+		_classCallCheck(this, Menu);
+
+		return _possibleConstructorReturn(this, (Menu.__proto__ || Object.getPrototypeOf(Menu)).apply(this, arguments));
+	}
+
+	_createClass(Menu, [{
+		key: 'render',
+		value: function render() {
+			return _react2.default.createElement(
+				_reactBootstrap.Navbar,
+				{ inverse: true, fixedTop: true },
+				_react2.default.createElement(
+					_reactBootstrap.Navbar.Header,
+					null,
+					_react2.default.createElement(
+						_reactBootstrap.Navbar.Brand,
+						null,
+						_react2.default.createElement(
+							'a',
+							{ href: '/' },
+							'React-Bootstrap'
+						)
+					),
+					_react2.default.createElement(_reactBootstrap.Navbar.Toggle, null)
+				),
+				_react2.default.createElement(
+					_reactBootstrap.Navbar.Collapse,
+					null,
+					_react2.default.createElement(
+						_reactBootstrap.Nav,
+						null,
+						_react2.default.createElement(
+							_reactBootstrap.NavItem,
+							{ eventKey: 1, href: '/about' },
+							'About'
+						),
+						_react2.default.createElement(
+							_reactBootstrap.NavItem,
+							{ eventKey: 2, href: '/contacts' },
+							'Contact'
+						)
+					),
+					_react2.default.createElement(
+						_reactBootstrap.Nav,
+						{ pullRight: true },
+						_react2.default.createElement(
+							_reactBootstrap.NavItem,
+							{ eventKey: 1, href: '#' },
+							'Admin'
+						),
+						_react2.default.createElement(
+							_reactBootstrap.NavItem,
+							{ eventKey: 2, href: '#' },
+							'Your Cart ',
+							_react2.default.createElement(
+								_reactBootstrap.Badge,
+								{ className: 'badge' },
+								'1'
+							)
+						)
+					)
+				)
+			);
+		}
+	}]);
+
+	return Menu;
+}(_react2.default.Component);
+
+exports.default = Menu;
+
+/***/ }),
+/* 487 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Footer = function (_React$Component) {
+	_inherits(Footer, _React$Component);
+
+	function Footer() {
+		_classCallCheck(this, Footer);
+
+		return _possibleConstructorReturn(this, (Footer.__proto__ || Object.getPrototypeOf(Footer)).apply(this, arguments));
+	}
+
+	_createClass(Footer, [{
+		key: "render",
+		value: function render() {
+			return _react2.default.createElement(
+				"footer",
+				{ className: "footer text-center" },
+				_react2.default.createElement(
+					"div",
+					{ className: "container" },
+					_react2.default.createElement(
+						"p",
+						{ className: "footer-text" },
+						"Copyright 2017 Rcart. All right reserved"
+					)
+				)
+			);
+		}
+	}]);
+
+	return Footer;
+}(_react2.default.Component);
+
+exports.default = Footer;
 
 /***/ })
 /******/ ]);
